@@ -2,11 +2,12 @@ export interface Tenant {
   id: string;
   name: string;
   slug: string;
+  cpfCnpj?: string; // Novo campo
   plan: string;
   domain?: string;
   siteData?: { title: string; description: string; logoUrl: string; primaryColor: string };
   status: 'ativo' | 'suspenso' | 'teste' | 'cancelado';
-  users?: User[]; // Relação com User
+  users?: User[];
 }
 
 export interface User {
@@ -45,6 +46,7 @@ export interface CategoriaIdade {
 export interface Aluno {
   id: string;
   name: string;
+  cpf?: string; // Novo campo
   birthDate?: string;
   peso?: number;
   altura?: number;

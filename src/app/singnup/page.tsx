@@ -7,6 +7,7 @@ import axios from '../../lib/axios';
 export default function Signup() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
+  const [cpfCnpj, setCpfCnpj] = useState('');
   const [plan, setPlan] = useState('basico');
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
@@ -15,7 +16,8 @@ export default function Signup() {
   const router = useRouter();
 
   useEffect(() => {
-    axios.get('/atividades-disponiveis')
+    axios
+      .get('/atividades/disponiveis')
       .then(res => setAtividadesDisponiveis(res.data))
       .catch(e => console.error('Erro ao carregar atividades:', e));
   }, []);
@@ -34,6 +36,7 @@ export default function Signup() {
       await axios.post('/tenants', {
         name,
         slug,
+        cpfCnpj,
         plan,
         siteData: { title: name, description: `Bem-vindo à ${name}`, logoUrl: '', primaryColor: '#3b82f6' },
         atividades: atividadesSelecionadas,
@@ -69,6 +72,16 @@ export default function Signup() {
             onChange={e => setSlug(e.target.value)}
             className="w-full p-2 border"
             required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block mb-1">CPF ou CNPJ</label>
+          <input
+            type="text"
+            value={cpfCnpj}
+            onChange={e => setCpfCnpj(e.target.value)}
+            className="w-full p-2 border"
+            placeholder="Digite CPF (11 dígitos) ou CNPJ (14 dígitos)"
           />
         </div>
         <div className="mb-4">

@@ -13,7 +13,7 @@ const AlunosPage = () => {
   const router = useRouter();
 
   useEffect(() => {
- Promise.all([
+    Promise.all([
       axios.get('/alunos?tenantId=temp-tenant-id'),
       axios.get('/responsaveis?tenantId=temp-tenant-id'),
       axios.get('/atividades?tenantId=temp-tenant-id'),
@@ -31,20 +31,41 @@ const AlunosPage = () => {
       });
   }, [router]);
 
+  const calcularIdade = (birthDate?: string): number | null => {
+    if (!birthDate) return null;
+
+    const nascimento = new Date(birthDate);
+    if (isNaN(nascimento.getTime())) return null; // Invalid date
+
+    const hoje = new Date();
+    const idade = hoje.getFullYear() - nascimento.getFullYear();
+    const mes = hoje.getMonth() - nascimento.getMonth();
+    const dia = hoje.getDate() - nascimento.getDate();
+
+    if (hoje < nascimento) return null; // Future date
+    if (mes < 0 || (mes === 0 && dia < 0)) {
+      return idade - 1;
+    }
+    return idade;
+  };
+
   const handleCreate = async () => {
     const name = prompt('Nome:');
     const birthDate = prompt('Data de Nascimento (YYYY-MM-DD):');
+    const idade = birthDate ? calcularIdade(birthDate) : null;
+    const cpf = idade !== null && idade >= 18 ? prompt('CPF (obrigatório para maiores de 18):') : prompt('CPF (opcional):');
     const peso = prompt('Peso (kg):');
     const altura = prompt('Altura (m):');
-    const responsavelId = prompt('ID do Responsável (obrigatório para menores):');
+    const responsavelId = idade !== null && idade >= 18 ? null : prompt('ID do Responsável (obrigatório para menores):');
     const atividadeId = prompt(`ID da Atividade (${atividades.map(a => a.nome).join(', ')}):`);
     try {
       const res = await axios.post('/alunos', {
         name,
+        cpf,
         birthDate,
         peso: peso ? parseFloat(peso) : null,
         altura: altura ? parseFloat(altura) : null,
-        responsavelId: responsavelId || null,
+        responsavelId,
         tenantId: 'temp-tenant-id',
         atividadeId,
       });
@@ -103,7 +124,7 @@ const AlunosPage = () => {
         data,
         metrica,
         comentario,
-        atividadeId, // Enviar atividadeId para associar ao desempenho
+        atividadeId,
       });
       const res = await axios.get('/alunos?tenantId=temp-tenant-id');
       setAlunos(res.data);
@@ -120,6 +141,7 @@ const AlunosPage = () => {
         <thead>
           <tr>
             <th className="border p-2">Nome</th>
+            <th className="border p-2">CPF</th>
             <th className="border p-2">Data de Nascimento</th>
             <th className="border p-2">Peso (kg)</th>
             <th className="border p-2">Altura (m)</th>
@@ -135,6 +157,7 @@ const AlunosPage = () => {
             return (
               <tr key={aluno.id}>
                 <td className="border p-2">{aluno.name}</td>
+                <td className="border p-2">{aluno.cpf || '-'}</td>
                 <td className="border p-2">{aluno.birthDate ? new Date(aluno.birthDate).toLocaleDateString() : '-'}</td>
                 <td className="border p-2">{aluno.peso ? aluno.peso.toFixed(2) : '-'}</td>
                 <td className="border p-2">{aluno.altura ? aluno.altura.toFixed(2) : '-'}</td>
